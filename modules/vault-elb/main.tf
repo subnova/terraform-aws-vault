@@ -19,8 +19,8 @@ resource "aws_elb" "vault" {
   connection_draining         = "${var.connection_draining}"
   connection_draining_timeout = "${var.connection_draining_timeout}"
 
-  security_groups    = ["${aws_security_group.vault.id}"]
-  subnets            = ["${var.subnet_ids}"]
+  security_groups = ["${aws_security_group.vault.id}"]
+  subnets         = ["${var.subnet_ids}"]
 
   # Run the ELB in TCP passthrough mode
   listener {
@@ -31,16 +31,14 @@ resource "aws_elb" "vault" {
   }
 
   health_check {
-    target              = "${var.health_check_protocol}:${var.vault_api_port}${var.health_check_path}"
+    target              = "${var.health_check_protocol}:${var.health_check_port == 0 ? var.vault_api_port : var.health_check_port}${var.health_check_path}"
     interval            = "${var.health_check_interval}"
     healthy_threshold   = "${var.health_check_healthy_threshold}"
     unhealthy_threshold = "${var.health_check_unhealthy_threshold}"
     timeout             = "${var.health_check_timeout}"
   }
 
-  tags {
-    Name = "${var.name}"
-  }
+  tags = "${merge(map("Name", var.name), var.lb_tags)}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
